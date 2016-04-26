@@ -10,11 +10,15 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 
 public class MainActivity extends AppCompatActivity {
     private String Url = null;    //private string to store url
     private ProgressDialog dialog1;  //progress bar for downloading
     public static final int progress1 = 0;
+    private Spinner spinner;
+    private String spin_val;
+    private String[] years = { "select a year","2011","2012","2013","2014" };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
