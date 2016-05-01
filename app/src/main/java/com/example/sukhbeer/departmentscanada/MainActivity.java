@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
@@ -42,7 +43,10 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
-
+    private ProgressDialog dialog2;
+    private static final int progress2 = 1;
+    public DatabaseHelper databaseHelper;
+    private SQLiteDatabase database;
     /**
      * Checks if the app has permission to write to device storage
      *
@@ -68,6 +72,16 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         verifyStoragePermissions(MainActivity.this);
         setContentView(R.layout.activity_main);
+        File databaseFile = new File(Environment.getDataDirectory() + File.separator + "/data/com.example.sukhbeer.departmentscanada/databases/departments.db");
+        Log.d("address", String.valueOf(databaseFile));
+        if(databaseFile.exists()){
+            deleteDatabase(String.valueOf(databaseFile));
+            Log.d("Database","DEleted");
+        } else {
+            Log.d("Database deletion","failed");
+        }
+        databaseHelper = new DatabaseHelper(this);
+        database = databaseHelper.getWritableDatabase();
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         spinner = (Spinner) findViewById(R.id.spinner);
@@ -159,7 +173,7 @@ public class MainActivity extends AppCompatActivity {
                     total+= count;
                     publishProgress(""+(int)((total*100)/fileSize));
 
-                    out.write(data,0,count);
+                    out.write(data, 0, count);
                 }
                 out.flush();
 
@@ -184,6 +198,7 @@ public class MainActivity extends AppCompatActivity {
             dismissDialog(progress1);
         }
     }
+
 
 
     @Override
