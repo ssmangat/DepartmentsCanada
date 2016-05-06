@@ -24,12 +24,17 @@ import android.widget.ProgressBar;
 import android.widget.Spinner;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class MainActivity extends AppCompatActivity {
     private String url = null;    //private string to store url
@@ -140,6 +145,15 @@ public class MainActivity extends AppCompatActivity {
                 dialog1.setCancelable(true);
                 dialog1.show();
                 return dialog1;
+            case progress2: // we set this to 0
+                dialog2 = new ProgressDialog(this);
+                dialog2.setMessage("unzipping file. Please wait...");
+                dialog2.setIndeterminate(false);
+                dialog2.setMax(100);
+                dialog2.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                dialog2.setCancelable(true);
+                dialog2.show();
+                return dialog2;
             default:
                 return null;
         }
@@ -196,10 +210,69 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(String file_url) {
             // dismiss the dialog after the file was downloaded
             dismissDialog(progress1);
+            new unzip().execute();
         }
     }
 
+    private class unzip extends AsyncTask<String,String,String>{
+        InputStream is;
 
+        ZipInputStream zis;
+        @Override
+        protected void onPreExecute(){
+            super.onPreExecute();
+            showDialog(progress2);
+        }
+
+
+
+        @Override
+        protected String doInBackground(String... params) {
+            try{
+                is = new FileInputStream(Environment.getDataDirectory() + File.separator + "/data/com.example.sukhbeer.departmentscanada/files/data1");
+                zis = new ZipInputStream(new BufferedInputStream(is));
+                ZipEntry ze;
+                while ((ze = zis.getNextEntry())!= null){
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    byte[] buffer = new byte[12000];
+                    int count1;
+                    File file = new File(Environment.getExternalStorageDirectory() + File.separator + "unzipped.csv");
+                    int fileSize = (int) ze.getSize();
+                    OutputStream fileOutputStream = new FileOutputStream(file);
+                    long total = 0;
+                    while ((count1 = zis.read(buffer))!= -1){
+                        baos.write(buffer,0,count1);
+                        total += count1;
+                        publishProgress("" + (int) ((total *100)/fileSize));
+                        byte[] bytes = baos.toByteArray();
+                        fileOutputStream.write(bytes);
+                        baos.reset();
+                    }
+                    fileOutputStream.close();
+                    zis.closeEntry();
+
+                }
+                zis.close();
+            } catch (IOException e){
+                Log.e("Decompress", "Unzip", e);
+            }
+            return null;
+        }
+        protected void onProgressUpdate(String... params) {
+            // setting progress percentage
+            dialog2.setProgress(Integer.parseInt(params[0]));
+        }
+
+        /**
+         * After completing background task Dismiss the progress dialog
+         * **/
+        @Override
+        protected void onPostExecute(String file_url) {
+            // dismiss the dialog after the file was downloaded
+            dismissDialog(progress2);
+            //new readCSV().execute();
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
