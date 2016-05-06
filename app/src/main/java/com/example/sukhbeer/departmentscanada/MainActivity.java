@@ -24,10 +24,13 @@ import android.widget.ProgressBar;
 import android.widget.Spinner;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -50,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
     };
     private ProgressDialog dialog2;
     private static final int progress2 = 1;
+    private ProgressDialog dialog3;
+    private static final int progress3 = 2;
     public DatabaseHelper databaseHelper;
     private SQLiteDatabase database;
     /**
@@ -81,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d("address", String.valueOf(databaseFile));
         if(databaseFile.exists()){
             deleteDatabase(String.valueOf(databaseFile));
-            Log.d("Database","DEleted");
+            Log.d("Database","Deleted");
         } else {
             Log.d("Database deletion","failed");
         }
@@ -145,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
                 dialog1.setCancelable(true);
                 dialog1.show();
                 return dialog1;
-            case progress2: // we set this to 0
+            case progress2: // we set this to 2
                 dialog2 = new ProgressDialog(this);
                 dialog2.setMessage("unzipping file. Please wait...");
                 dialog2.setIndeterminate(false);
@@ -154,6 +159,15 @@ public class MainActivity extends AppCompatActivity {
                 dialog2.setCancelable(true);
                 dialog2.show();
                 return dialog2;
+            case progress3: // we set this to 3
+                dialog3 = new ProgressDialog(this);
+                dialog3.setMessage("Reading the downloaded file. Please wait for 10-15 minutes as because of the large size reading it costs some time. thanks for your patience...");
+                dialog3.setIndeterminate(false);
+                dialog3.setMax(100);
+                dialog3.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                dialog3.setCancelable(true);
+                dialog3.show();
+                return dialog3;
             default:
                 return null;
         }
@@ -270,7 +284,59 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(String file_url) {
             // dismiss the dialog after the file was downloaded
             dismissDialog(progress2);
-            //new readCSV().execute();
+            new readCSV().execute();
+        }
+    }
+
+    private class readCSV extends AsyncTask<String,String,String>{
+        File fr = null;
+        FileReader fileReader = null;
+        @Override
+        protected void onPreExecute(){
+            super.onPreExecute();
+            showDialog(progress3);
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+            Log.d("ReadCsv","Reading");
+            try{
+                fr = new File(Environment.getExternalStorageDirectory() + File.separator + "unzipped.csv");
+                fileReader = new FileReader(fr);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            Log.d("ReadCsv", "file detected");
+
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+            String data = "";
+            long count = 0;
+            try{
+                Log.d("ReadCsv","started reading");
+                String garbage = bufferedReader.readLine();
+                while ((data = bufferedReader.readLine()) != null){
+                    String[] stringArray = data.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)", -1);
+                   // Departments departments = new Departments(stringArray[0].replace("\"", ""),stringArray[1].replace("\"", ""),stringArray[2].replace("\"", ""),stringArray[3].replace("\"", ""),stringArray[4].replace("\"", ""),stringArray[5].replace("\"", ""),stringArray[6].replace("\"", ""),stringArray[7].replace("\"", ""),stringArray[16]);
+                    databaseHelper.addToDatabase(stringArray[0].replace("\"", ""),stringArray[1].replace("\"", ""),stringArray[2].replace("\"", ""),stringArray[3].replace("\"", ""),stringArray[4].replace("\"", ""),stringArray[5].replace("\"", ""),stringArray[6].replace("\"", ""),stringArray[7].replace("\"", ""),stringArray[16]);
+                    count = count+1;
+                    publishProgress("" + (int) ((count * 100) / 80000));
+
+                }
+                Log.d("ReadCsv", "Done Entering data");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+        protected void onProgressUpdate(String... params) {
+            // setting progress percentage
+            dialog3.setProgress(Integer.parseInt(params[0]));
+        }
+
+        @Override
+        protected void onPostExecute(String file_url) {
+            // dismiss the dialog after the file was read
+            dismissDialog(progress3);
         }
     }
 

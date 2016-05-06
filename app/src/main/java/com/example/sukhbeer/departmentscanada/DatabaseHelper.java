@@ -46,6 +46,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     }
 
+
     public String[] readDatabase(String string){
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery("select Distinct " + string + " from Departments", null);
@@ -54,7 +55,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         int i =0;
         while(!cursor.isAfterLast()) {
             list[i] = cursor.getString(cursor.getColumnIndex(string));
-            //departments[i+1] = list[i];
             i++;
             cursor.moveToNext();
             //Log.d("Data", "entered" + departments[i - 1]);
