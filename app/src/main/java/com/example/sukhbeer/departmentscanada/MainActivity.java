@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
@@ -317,7 +318,7 @@ public class MainActivity extends AppCompatActivity {
                 while ((data = bufferedReader.readLine()) != null){
                     String[] stringArray = data.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)", -1);
                    // Departments departments = new Departments(stringArray[0].replace("\"", ""),stringArray[1].replace("\"", ""),stringArray[2].replace("\"", ""),stringArray[3].replace("\"", ""),stringArray[4].replace("\"", ""),stringArray[5].replace("\"", ""),stringArray[6].replace("\"", ""),stringArray[7].replace("\"", ""),stringArray[16]);
-                    databaseHelper.addToDatabase(stringArray[0].replace("\"", ""),stringArray[1].replace("\"", ""),stringArray[2].replace("\"", ""),stringArray[3].replace("\"", ""),stringArray[4].replace("\"", ""),stringArray[5].replace("\"", ""),stringArray[6].replace("\"", ""),stringArray[7].replace("\"", ""),stringArray[16]);
+                    databaseHelper.addToDatabase(stringArray[0].replace("\"", ""), stringArray[1].replace("\"", ""), stringArray[2].replace("\"", ""), stringArray[3].replace("\"", ""), stringArray[4].replace("\"", ""), stringArray[5].replace("\"", ""), stringArray[6].replace("\"", ""), stringArray[7].replace("\"", ""), stringArray[16]);
                     count = count+1;
                     publishProgress("" + (int) ((count * 100) / 80000));
 
@@ -337,9 +338,13 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(String file_url) {
             // dismiss the dialog after the file was read
             dismissDialog(progress3);
+            startNewActivity();
         }
     }
-
+    private void startNewActivity() {
+        Intent i = new Intent(this,Activity2.class);
+        startActivity(i);
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
